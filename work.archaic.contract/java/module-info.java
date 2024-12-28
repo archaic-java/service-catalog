@@ -1,3 +1,3 @@
-open module work.archaic.contract {
-
+module work.archaic.contract {
+    exports work.archaic.contract.log;
 }

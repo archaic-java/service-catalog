@@ -1,4 +1,4 @@
-package work.archaic.contract.logging;
+package work.archaic.contract.log;
 
 @SuppressWarnings("unused")
 public interface Logging {
