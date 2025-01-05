@@ -1,4 +1,4 @@
-package work.archaic.contract.test;
+package work.archaic.contract.test.v01;
 
 @SuppressWarnings("unused")
 public interface Testing {

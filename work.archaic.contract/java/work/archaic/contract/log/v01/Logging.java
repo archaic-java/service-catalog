@@ -1,7 +1,7 @@
 package work.archaic.contract.log.v01;
 
 @SuppressWarnings("unused")
-public interface Logging_01 {
+public interface Logging {
     void debug(Object... args);
     void info(Object... args);
     void warn(Object... args);

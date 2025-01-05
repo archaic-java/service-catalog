@@ -1,4 +1,4 @@
-package work.archaic.contract.test;
+package work.archaic.contract.test.v01;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
