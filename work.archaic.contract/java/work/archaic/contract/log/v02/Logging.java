@@ -19,7 +19,12 @@ public interface Logging {
     void anomaly(Exception exception);
 
     /**
-     * @param throwable being an unexpected outcome.
+     * @param throwable being an unexpected crash on current thread
      */
-    void bug(Throwable throwable);
+    void crash(Throwable throwable);
+
+    /**
+     * @param message describing a probable bug
+     */
+    void bug(String message);
 }
