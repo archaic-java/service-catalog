@@ -1,3 +1,3 @@
 module work.archaic.service.catalog {
-    exports work.archaic.service.tar.v01;
+    exports work.archaic.service.test.v01;
 }
