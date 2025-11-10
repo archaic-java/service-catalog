@@ -33,4 +33,10 @@ public @interface Repository {
    * The clone URL for retrieving this module.
    */
   String url();
+
+  /**
+   * The git reference (branch or tag) to clone.
+   * Defaults to the repository's default branch if not specified.
+   */
+  String ref() default "";
 }
