@@ -17,8 +17,9 @@ swap a library as the app using it, is only depending on the service defined in 
 
 ## Goal-scoped diagnostics
 
-[Logging v01](docs/logging-v01.md) defines reusable goals, per-execution trails and completed
-failure-report destinations. Runtime implementations belong in a separate provider library.
+[Logging v01](docs/logging-v01.md) defines reusable goals, per-execution trails and a log for
+immediate information and completed failure reports. Runtime implementations belong in a
+separate provider library.
 
 Compile the catalog and its contract checks with JDK 25, then run with assertions enabled:
 

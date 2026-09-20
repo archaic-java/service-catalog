@@ -10,7 +10,7 @@ SLF4J dependency, severity levels, MDC or fluent logging builder.
 | --- | --- |
 | `Goal` | Reusable named objective; `run`, `call`, and a virtual-thread executor adapter |
 | `Trail` | Bounded, thread-confined observations for one active execution |
-| `Log` | Destination accepting completed failure reports |
+| `Log` | Destination for immediate information and completed failure reports |
 | `GoalProvider` | Creates goals and exposes its current trail to participating code |
 | `Observation` | Captured text and monotonic elapsed time |
 | `FailureReport` | Execution identity, timing, retained evidence, loss counts and original failure |
@@ -21,8 +21,16 @@ only data validation and trivial delegation; scope binding, buffers, scheduling 
 belong to a separate library. A provider can use Java 25 ScopedValue internally without
 exposing its binding key. No reflection, internal JDK API or preview feature is needed.
 
-Log here means the destination for a whole failed execution, not a second conventional
-per-message logger. Audit events and independent operational announcements are outside v01.
+Log provides two output paths: `note(String)` publishes general information immediately,
+and `write(FailureReport)` accepts the evidence from a failed execution. Neither uses levels.
+Unlike `Trail.note`, `Log.note` works outside a goal and remains immediate inside one; a
+successful goal never discards it. Both methods report destination I/O failures explicitly.
+Immediate publication does not guarantee durable storage. Audit-specific guarantees are
+outside v01.
+
+```java
+log.note("Application started; listening on port 8080");
+```
 
 ## Lifecycle
 
@@ -54,7 +62,8 @@ Throwable retains its original identity and is not deeply immutable.
 Applications may explicitly construct a provider or load `GoalProvider` via ServiceLoader.
 For service loading, the consumer declares `uses work.archaic.service.logging.v01.GoalProvider`;
 the provider declares `provides ...GoalProvider with ...Implementation`. A Log may also be
-selected with its own uses/provides pair, or supplied directly (including as a lambda).
+selected with its own uses/provides pair, or supplied directly as an implementation. Log has
+two abstract methods and is not a functional interface.
 Selection belongs to the application: require exactly one provider unless explicitly selecting
 by provider type; zero or ambiguous providers are configuration errors, never an arbitrary
 first match. The catalog itself performs no discovery and adds no global state.
@@ -128,12 +137,15 @@ java @cmd/test
 
 The separate test module validates report copying/invariants, default action delegation,
 checked exception identity and Error propagation. It also compiles JDK HTTP integration against
-the exported contract. These tests do not claim to validate a provider that does not exist yet.
+the exported contract, including immediate Log.note calls with checked IOException handling.
+These tests do not claim to validate a provider that does not exist yet.
 
 The first implementation must add contract-level tests for:
 
 - success discard, complete failure reports and original exception identity;
 - reporting failure without replacing the work failure;
+- immediate information inside and outside goals, independent of trail retention, with explicit
+  output failure propagation and coherent concurrent messages/reports;
 - independent concurrent/repeated executions and unique execution IDs;
 - scope cleanup on every path, stale/wrong-thread trail rejection and unbound access;
 - buffer limits, truncation and omitted evidence counts;

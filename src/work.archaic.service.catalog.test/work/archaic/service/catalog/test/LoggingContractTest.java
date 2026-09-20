@@ -111,6 +111,14 @@ public final class LoggingContractTest {
     }
 
     // Compile-time integration checks: only catalog and public JDK types cross the boundary.
+    static void announceStartup(Log log) throws IOException {
+        log.note("Application started; listening on port 8080");
+    }
+
+    static void announceInsideGoal(Goal goal, Log log) throws IOException {
+        goal.run(() -> log.note("Configuration reloaded"));
+    }
+
     static ExecutorService configureHttp(HttpServer server, GoalProvider provider, Log log) {
         var goal = provider.goal("http.request", log);
         var executor = goal.executor();
