@@ -1,0 +1,3 @@
+-ea
+--module-path out
+-m work.archaic.service.catalog.test/work.archaic.service.catalog.test.LoggingContractTest
