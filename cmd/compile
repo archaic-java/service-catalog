@@ -1,0 +1,4 @@
+--release 25
+--module-source-path src
+--module work.archaic.service.catalog,work.archaic.service.catalog.test
+-d out
