@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import work.archaic.service.logging.v01.FailureReport;
-import work.archaic.service.logging.v01.Goal;
-import work.archaic.service.logging.v01.GoalProvider;
-import work.archaic.service.logging.v01.Log;
-import work.archaic.service.logging.v01.Observation;
+import work.archaic.service.logging.v02.FailureReport;
+import work.archaic.service.logging.v02.Goal;
+import work.archaic.service.logging.v02.Diagnostics;
+import work.archaic.service.logging.v02.Log;
+import work.archaic.service.logging.v02.Observation;
 
 /** Catalog data/default-method checks, not a substitute for provider conformance tests. */
-public final class LoggingContractTest {
+public final class LoggingV02ContractTest {
     private static final Duration DURATION = Duration.ofMillis(10);
 
     public static void main(String[] args) throws Exception {
@@ -25,9 +25,8 @@ public final class LoggingContractTest {
         if (!assertions) throw new IllegalStateException("Run with -ea");
         snapshotsAreIndependent();
         invalidEvidenceIsRejected();
-        actionDelegatesWithoutWrappingFailures();
-        System.out.println("Logging contract: 3 checks passed");
-        LoggingV02ContractTest.main(args);
+        notesDelegateToCurrentTrail();
+        System.out.println("Logging v02 contract: 3 checks passed");
     }
 
     private static void snapshotsAreIndependent() {
@@ -69,36 +68,16 @@ public final class LoggingContractTest {
                 DURATION, observations, omitted, truncated, failure);
     }
 
-    private static void actionDelegatesWithoutWrappingFailures() throws IOException {
-        // Only exercises the catalog's default method; this is deliberately not a provider.
-        var goal = new Goal() {
-            int calls;
-            @Override public String name() { return "test"; }
-            @Override public <T, X extends Throwable> T call(Operation<T, X> work) throws X {
-                calls++;
-                return work.call();
+    private static void notesDelegateToCurrentTrail() {
+        var notes = new ArrayList<String>();
+        Diagnostics diagnostics = new Diagnostics() {
+            @Override public Goal goal(String name, Log log) { throw new UnsupportedOperationException(); }
+            @Override public work.archaic.service.logging.v02.Trail currentTrail() {
+                return notes::add;
             }
-            @Override public ExecutorService executor() { throw new UnsupportedOperationException(); }
         };
-        var ran = new boolean[1];
-        goal.run(() -> ran[0] = true);
-        assert ran[0] && goal.calls == 1 : "Action must run exactly once through call";
-        expect(NullPointerException.class, () -> goal.run(null));
-        assert goal.calls == 1 : "Null action reached execution boundary";
-        var failure = new IOException("checked");
-        try {
-            goal.run(() -> { throw failure; });
-            throw new AssertionError("Expected IOException");
-        } catch (IOException actual) {
-            assert actual == failure : "Checked failure was wrapped";
-        }
-        var error = new AssertionError("error");
-        try {
-            goal.run(() -> { throw error; });
-            throw new AssertionError("Expected original error");
-        } catch (AssertionError actual) {
-            assert actual == error : "Error was wrapped";
-        }
+        diagnostics.note("evidence");
+        assert notes.equals(List.of("evidence"));
     }
 
     private static void expect(Class<? extends Throwable> type, Runnable operation) {
@@ -113,16 +92,16 @@ public final class LoggingContractTest {
 
     // Compile-time integration checks: only catalog and public JDK types cross the boundary.
     static void announceStartup(Log log) throws IOException {
-        log.note("Application started; listening on port 8080");
+        log.write("Application started; listening on port 8080");
     }
 
     static void announceInsideGoal(Goal goal, Log log) throws IOException {
-        goal.run(() -> log.note("Configuration reloaded"));
+        goal.run(() -> log.write("Configuration reloaded"));
     }
 
-    static ExecutorService configureHttp(HttpServer server, GoalProvider provider, Log log) {
+    static ExecutorService configureHttp(HttpServer server, Diagnostics provider, Log log) {
         var goal = provider.goal("http.request", log);
-        var executor = goal.executor();
+        var executor = goal.newExecutor();
         server.setExecutor(executor);
         server.createContext("/orders", exchange -> {
             try (exchange) {
