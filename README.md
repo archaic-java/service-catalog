@@ -30,3 +30,9 @@ javac @cmd/compile
 java @cmd/test
 ```
 
+
+## Explicit test cases
+
+[Testing v02](docs/test-v02.md) defines suites that register case instances through a mutable
+collection, record-based data-driven cases, and per-execution failure trails. The existing
+annotation-based testing v01 contracts remain unchanged.
