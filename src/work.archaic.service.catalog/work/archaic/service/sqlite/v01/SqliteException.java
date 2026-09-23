@@ -9,6 +9,12 @@ public final class SqliteException extends Exception {
         this.code = code;
     }
 
+    /** A provider failure that does not have a SQLite result code. */
+    public SqliteException(String message) {
+        super(message);
+        this.code = 0;
+    }
+
     public SqliteException(String message, Throwable cause) {
         super(message, cause);
         this.code = 0;

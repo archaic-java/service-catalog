@@ -6,8 +6,11 @@ import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import work.archaic.service.sqlite.v01.Sqlite;
 import work.archaic.service.sqlite.v01.SqliteException;
+import work.archaic.service.sqlite.v01.Session;
 
 /** Executable provider conformance check for SQLite v01. */
 public final class SqliteProviderContract {
@@ -18,7 +21,20 @@ public final class SqliteProviderContract {
         var provider = ServiceLoader.load(Sqlite.class).findFirst().orElseThrow();
         var directory = Files.createTempDirectory("ffm-sqlite-test-");
         var file = directory.resolve("test.db");
+        var backup = directory.resolve("backup.db");
         try (var db = provider.open(file, 4, Duration.ofSeconds(2))) {
+            assert db.read(session -> {
+                try (var mode = session.prepare("PRAGMA journal_mode")) {
+                    assert mode.step() : "Journal mode should be reported";
+                    return mode.stringAt(0);
+                }
+            }).equalsIgnoreCase("wal") : "Provider should enable WAL mode";
+            assert db.read(session -> {
+                try (var foreignKeys = session.prepare("PRAGMA foreign_keys")) {
+                    assert foreignKeys.step() : "Foreign key setting should be reported";
+                    return foreignKeys.longAt(0);
+                }
+            }) == 1L : "Every reader should enforce foreign keys";
             db.write(session -> {
                 try (var statement = session.prepare("CREATE TABLE entries (id INTEGER PRIMARY KEY, name TEXT NOT NULL, data BLOB)")) {
                     assert !statement.step() : "DDL should finish without rows";
@@ -51,6 +67,18 @@ public final class SqliteProviderContract {
                 });
                 throw new AssertionError("Request failure must escape");
             } catch (IllegalArgumentException expected) { /* rollback */ }
+            var domainFailure = new java.io.IOException("request failed");
+            try {
+                db.write(session -> {
+                    try (var insert = session.prepare("INSERT INTO entries (name) VALUES ('checked')")) {
+                        insert.step();
+                    }
+                    throw domainFailure;
+                });
+                throw new AssertionError("Checked failure should escape");
+            } catch (java.io.IOException expected) {
+                assert expected == domainFailure : "Scope must preserve the original checked failure";
+            }
             assert db.read(session -> {
                 try (var query = session.prepare("SELECT count(*) FROM entries")) {
                     assert query.step() : "COUNT should return a row";
@@ -129,6 +157,19 @@ public final class SqliteProviderContract {
                             return query.longAt(0);
                         }
                     }) == 14L : "Reader should continue while writer has uncommitted changes";
+                    db.backup(backup, Duration.ofSeconds(2));
+                    try (var restored = provider.open(backup, 1, Duration.ofSeconds(2))) {
+                        assert restored.read(session -> {
+                            try (var query = session.prepare("SELECT count(*) FROM entries")) {
+                                assert query.step() : "Backup should be queryable";
+                                return query.longAt(0);
+                            }
+                        }) == 14L : "Backup should contain a committed snapshot during a write";
+                    }
+                    try {
+                        db.backup(backup, Duration.ofSeconds(2));
+                        throw new AssertionError("Backup must not replace an existing file");
+                    } catch (java.nio.file.FileAlreadyExistsException expected) { /* kept original */ }
                     try {
                         db.read(session -> {
                             try (var update = session.prepare("INSERT INTO entries (name) VALUES ('bad')")) {
@@ -141,12 +182,52 @@ public final class SqliteProviderContract {
                 } finally { release.countDown(); }
                 pending.get();
             }
+            var checkpoint = db.checkpoint();
+            assert checkpoint.logFrames() >= 0 : "WAL should report nonnegative frames";
+            assert checkpoint.checkpointedFrames() >= 0 : "Checkpoint should report nonnegative frames";
+            assert checkpoint.logFrames() >= checkpoint.checkpointedFrames()
+                    : "Checkpoint cannot complete more frames than the WAL holds";
+
+            try (var tasks = Executors.newVirtualThreadPerTaskExecutor()) {
+                var running = new AtomicReference<Session>();
+                var prepared = new CountDownLatch(1);
+                var query = tasks.submit(() -> db.read(session -> {
+                    try (var statement = session.prepare(
+                            "WITH RECURSIVE seq(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM seq WHERE n<100000000) SELECT sum(n) FROM seq")) {
+                        running.set(session);
+                        prepared.countDown();
+                        statement.step();
+                        return statement.longAt(0);
+                    }
+                }));
+                assert prepared.await(2, TimeUnit.SECONDS) : "Long query should be prepared";
+                Thread.sleep(25);
+                running.get().cancel();
+                try {
+                    query.get(2, TimeUnit.SECONDS);
+                    throw new AssertionError("Cancellation should interrupt the long query");
+                } catch (ExecutionException expected) {
+                    assert expected.getCause() instanceof SqliteException
+                            : "Interrupted SQL should report its SQLite error";
+                    assert (((SqliteException) expected.getCause()).code() & 0xff) == 9
+                            : "Interrupted SQL should report SQLITE_INTERRUPT";
+                }
+            }
+            assert db.read(session -> {
+                try (var statement = session.prepare("SELECT 1")) {
+                    assert statement.step() : "Reader should remain usable after cancellation";
+                    return statement.longAt(0);
+                }
+            }) == 1 : "Canceled reader should return cleanly to the pool";
         } finally {
+            Files.deleteIfExists(backup.resolveSibling("backup.db-wal"));
+            Files.deleteIfExists(backup.resolveSibling("backup.db-shm"));
+            Files.deleteIfExists(backup);
             Files.deleteIfExists(file.resolveSibling("test.db-wal"));
             Files.deleteIfExists(file.resolveSibling("test.db-shm"));
             Files.deleteIfExists(file);
             Files.deleteIfExists(directory);
         }
-        System.out.println("SQLite provider: read, write, rollback and concurrent writes passed");
+        System.out.println("SQLite provider: transactions, concurrency, backup, checkpoint and cancellation passed");
     }
 }
