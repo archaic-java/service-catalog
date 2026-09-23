@@ -8,5 +8,5 @@ module work.archaic.service.catalog {
     exports work.archaic.service.build.v01;
     exports work.archaic.service.html.sitegenerator.v01;
     exports work.archaic.service.markdown.v01;
+    exports work.archaic.service.sqlite.v01;
 }
-
