@@ -34,6 +34,10 @@ This is a test plan for the published [SQLite v01 contract](sqlite-v01.md), not 
 
 `ExpiredHandles` checks escaped session/statement and statement cleanup; `ColumnAccessAndClose` checks invalid row/column access and subsequent reuse; `ValueOwnership` checks scalar boundaries, NULL versus empty values, and copied input/output; `ActiveClose` checks rejection while a sole reader is active followed by continued use and successful final close. See [the lifetime test PR](https://github.com/archaic-java/service-catalog/pull/14). Repeated close remains a decision above.
 
+## Implemented lease and cancellation case identifiers
+
+`LeaseTimeout(writer=false|true)` checks bounded reader/writer admission and next-caller reuse; `ExpiredCancellation` checks a live cross-thread cancel and expired-session isolation; `ConcurrentTransfers` checks unique committed operation IDs and actual account balances. The existing `Cancellation` case observes an unfinished query before cancel but cannot prove exact native step entry through v01. See [catalog cases](https://github.com/archaic-java/service-catalog/pull/15). `InterruptedLease(writer=false|true)` checks the FFM provider's interrupted-wait cause, restored flag and reuse in [provider tests](https://github.com/archaic-java/ffm-sqlite/pull/11); these precise exception semantics remain outside portable v01.
+
 ## Execution and evidence
 
 Implement in this order: [split cases](https://github.com/archaic-java/service-catalog/issues/7) → [wire provider Minau v02](https://github.com/archaic-java/ffm-sqlite/issues/2) → deterministic transaction, lifetime, lease, lock and backup cases → seeded model and child-process crash campaigns. Catalog cases exercise observable v01 behavior across providers; Linux SQLite lock, native fault, file publication and process supervision machinery stays with `ffm-sqlite`. Preserve original failures and attach cleanup failures as suppressed; any observed provider bug gets a retained regression and a focused provider correction. Pin catalog and Minau revisions when verifying a provider PR.
