@@ -25,6 +25,10 @@ This is a test plan for the published [SQLite v01 contract](sqlite-v01.md), not 
 | Rollback failure | Provider preserves the original throwable and suppresses rollback failure, then returns the connection to the pool without a health check. | Decide whether to discard/reopen a connection, close the database, or otherwise prevent unsafe reuse. No clean-reuse guarantee is asserted for this condition. |
 | Durability and synchronous mode | v01 promises transaction semantics and a published backup, but no power-loss guarantee or `synchronous` setting. Provider enables WAL without setting `PRAGMA synchronous`. | Choose a durability level and platform assumptions before claiming crash/power-loss persistence. A process-kill campaign alone cannot prove power-loss durability. |
 
+## Implemented transaction case identifiers
+
+`TransferRollback(failAfter=1|2|3)` checks rollback after each statement, exception identity and next-writer reuse; `TransactionConstraints` checks immediate `CHECK` failure and deferred foreign-key failure at COMMIT; `StableSnapshot` checks an established reader across a concurrent commit; `ReadOnlyReuse` checks rejection followed by a clean read and transfer. These cases are proposed in [the transaction test PR](https://github.com/archaic-java/service-catalog/pull/13), based on the Minau case split.
+
 ## Execution and evidence
 
 Implement in this order: [split cases](https://github.com/archaic-java/service-catalog/issues/7) → [wire provider Minau v02](https://github.com/archaic-java/ffm-sqlite/issues/2) → deterministic transaction, lifetime, lease, lock and backup cases → seeded model and child-process crash campaigns. Catalog cases exercise observable v01 behavior across providers; Linux SQLite lock, native fault, file publication and process supervision machinery stays with `ffm-sqlite`. Preserve original failures and attach cleanup failures as suppressed; any observed provider bug gets a retained regression and a focused provider correction. Pin catalog and Minau revisions when verifying a provider PR.
