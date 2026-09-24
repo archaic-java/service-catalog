@@ -33,17 +33,27 @@ public final class SqliteCases {
         cases.add(new BackupAndReads(provider));
         cases.add(new CheckpointProgress(provider));
         cases.add(new Cancellation(provider));
+        cases.add(new TransferRollback(provider, 1));
+        cases.add(new TransferRollback(provider, 2));
+        cases.add(new TransferRollback(provider, 3));
+        cases.add(new TransactionConstraints(provider));
+        cases.add(new StableSnapshot(provider));
+        cases.add(new ReadOnlyReuse(provider));
     }
 
     @FunctionalInterface
     interface Check { void run(Database db, Path directory) throws Exception; }
 
     static void withDatabase(Sqlite provider, TestTrail trail, Check check) throws Exception {
+        withDatabase(provider, trail, 4, check);
+    }
+
+    static void withDatabase(Sqlite provider, TestTrail trail, int readers, Check check) throws Exception {
         Path directory = Files.createTempDirectory("sqlite-conformance-");
         trail.note("Database directory: " + directory);
         boolean passed = false;
         try {
-            try (var db = provider.open(directory.resolve("test.db"), 4, Duration.ofSeconds(2))) {
+            try (var db = provider.open(directory.resolve("test.db"), readers, Duration.ofSeconds(2))) {
                 check.run(db, directory);
             }
             passed = true;
