@@ -39,6 +39,10 @@ public final class SqliteCases {
         cases.add(new TransactionConstraints(provider));
         cases.add(new StableSnapshot(provider));
         cases.add(new ReadOnlyReuse(provider));
+        cases.add(new ExpiredHandles(provider));
+        cases.add(new ColumnAccessAndClose(provider));
+        cases.add(new ValueOwnership(provider));
+        cases.add(new ActiveClose(provider));
     }
 
     @FunctionalInterface
