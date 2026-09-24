@@ -22,12 +22,17 @@ This is a test plan for the published [SQLite v01 contract](sqlite-v01.md), not 
 | Cross-thread session use beyond `cancel()` | The contract permits only `cancel()` from another thread; provider methods otherwise have no ownership guard. | Decide whether misuse must fail predictably or is outside the contract. |
 | Manual transaction-control SQL | `Session.prepare` accepts SQL without a transaction-control filter; the coordinator executes `BEGIN` and `COMMIT`/`ROLLBACK`. | Define whether user `BEGIN`, `COMMIT`, `ROLLBACK`, or savepoints are prohibited, supported, or unspecified. |
 | Configuration PRAGMAs | Provider establishes WAL and foreign keys but `prepare` does not filter PRAGMAs; a caller may alter connection state. | Define allowable PRAGMAs and responsibility for restoring connection settings. |
+| Repeated close | v01 requires closing after scopes, but does not promise idempotence for `Statement.close()` or `Database.close()`; `AutoCloseable` itself does not require it. | Decide whether repeated close must succeed, fail with a specified exception, or remain unspecified. Provider-specific checks may record current behavior without imposing it on all providers. |
 | Rollback failure | Provider preserves the original throwable and suppresses rollback failure, then returns the connection to the pool without a health check. | Decide whether to discard/reopen a connection, close the database, or otherwise prevent unsafe reuse. No clean-reuse guarantee is asserted for this condition. |
 | Durability and synchronous mode | v01 promises transaction semantics and a published backup, but no power-loss guarantee or `synchronous` setting. Provider enables WAL without setting `PRAGMA synchronous`. | Choose a durability level and platform assumptions before claiming crash/power-loss persistence. A process-kill campaign alone cannot prove power-loss durability. |
 
 ## Implemented transaction case identifiers
 
 `TransferRollback(failAfter=1|2|3)` checks rollback after each statement, exception identity and next-writer reuse; `TransactionConstraints` checks immediate `CHECK` failure and deferred foreign-key failure at COMMIT; `StableSnapshot` checks an established reader across a concurrent commit; `ReadOnlyReuse` checks rejection followed by a clean read and transfer. These cases are proposed in [the transaction test PR](https://github.com/archaic-java/service-catalog/pull/13), based on the Minau case split.
+
+## Implemented lifetime case identifiers
+
+`ExpiredHandles` checks escaped session/statement and statement cleanup; `ColumnAccessAndClose` checks invalid row/column access and subsequent reuse; `ValueOwnership` checks scalar boundaries, NULL versus empty values, and copied input/output; `ActiveClose` checks rejection while a sole reader is active followed by continued use and successful final close. See [the lifetime test PR](https://github.com/archaic-java/service-catalog/pull/14). Repeated close remains a decision above.
 
 ## Execution and evidence
 
