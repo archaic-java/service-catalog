@@ -15,6 +15,10 @@ swap a library as the app using it, is only depending on the service defined in 
 - The tests in the catalog serve as proof for conformance of the providers implementation
 - Service definitions in the catalog are versioned and each version is treated immutable
 
+## Local SQLite
+
+[SQLite v01](docs/sqlite-v01.md) defines scoped local database access, a single writer, bounded readers, and prepared statements. The Linux FFM implementation lives in [ffm-sqlite](https://github.com/archaic-java/ffm-sqlite).
+
 ## Goal-scoped diagnostics
 
 [Logging v02](docs/logging-v02.md) defines application goals, per-attempt trails and a log for
