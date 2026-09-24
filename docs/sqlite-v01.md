@@ -1,5 +1,7 @@
 # SQLite v01
 
+The [guarantee and failure-test ledger](sqlite-v01-guarantees.md) maps the published behavior to planned conformance and provider tests, and records unresolved policy questions.
+
 `work.archaic.service.sqlite.v01` is a deliberately small contract for a local SQLite database. Consumers declare `uses work.archaic.service.sqlite.v01.Sqlite` and resolve exactly one provider with `ServiceLoader`. The contract does not expose JDBC.
 
 - `open(file, readers, wait)` creates the database if needed, opens one writer and a fixed number of readers, and enables foreign keys on each connection. `wait` bounds acquisition of a connection, not execution time.
