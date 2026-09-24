@@ -43,6 +43,10 @@ public final class SqliteCases {
         cases.add(new ColumnAccessAndClose(provider));
         cases.add(new ValueOwnership(provider));
         cases.add(new ActiveClose(provider));
+        cases.add(new LeaseTimeout(provider, false));
+        cases.add(new LeaseTimeout(provider, true));
+        cases.add(new ExpiredCancellation(provider));
+        cases.add(new ConcurrentTransfers(provider));
     }
 
     @FunctionalInterface
@@ -303,7 +307,12 @@ record Cancellation(Sqlite provider) implements TestCase {
                     }
                 }));
                 assert prepared.await(2, TimeUnit.SECONDS) : "Long query should be prepared";
-                Thread.sleep(25);
+                try {
+                    query.get(50, TimeUnit.MILLISECONDS);
+                    throw new AssertionError("Long query finished before cancellation could be tested");
+                } catch (java.util.concurrent.TimeoutException expected) {
+                    trail.note("Query still unfinished; public contract cannot observe entry into SQLite step");
+                }
                 running.get().cancel();
                 try {
                     query.get(2, TimeUnit.SECONDS);
