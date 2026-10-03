@@ -8,7 +8,7 @@ final class ContextBinding {
     private ContextBinding() {}
 
     static Context currentOrNull() { return CURRENT.isBound() ? CURRENT.get() : null; }
-    static <E extends Exception> void where(Context context, Work<E> work) throws E {
-        ScopedValue.where(CURRENT, context).call(() -> { work.run(); return null; });
+    static <T, E extends Exception> T where(Context context, Call<T, E> work) throws E {
+        return ScopedValue.where(CURRENT, context).call(work::call);
     }
 }

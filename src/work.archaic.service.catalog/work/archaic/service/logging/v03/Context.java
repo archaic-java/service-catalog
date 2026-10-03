@@ -21,6 +21,13 @@ public abstract class Context {
     /** Execute once synchronously. Scope exit restores the enclosing context before publishing. */
     public final <E extends Exception> void run(Work<E> work) throws E {
         Objects.requireNonNull(work, "work");
+        call(() -> { work.run(); return null; });
+    }
+
+    /** Execute once and return its value, including null, after completion has published.
+     * Shares run's lifecycle, binding, checked exceptions and failure semantics. */
+    public final <T, E extends Exception> T call(Call<T, E> work) throws E {
+        Objects.requireNonNull(work, "work");
         synchronized (this) {
             if (used) throw new IllegalStateException("Logging context is single-use");
             used = true;
@@ -29,7 +36,7 @@ public abstract class Context {
         }
         Throwable failure = null;
         try {
-            ContextBinding.where(this, work);
+            return ContextBinding.where(this, work);
         } catch (Exception | Error cause) {
             failure = cause;
             throw cause;

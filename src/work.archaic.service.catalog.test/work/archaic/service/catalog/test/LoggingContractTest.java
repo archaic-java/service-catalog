@@ -29,6 +29,7 @@ public final class LoggingContractTest {
         System.out.println("Logging contract: 3 checks passed");
         LoggingV02ContractTest.main(args);
         LoggingV03ContractTest.main(args);
+        TextOutputContractTest.main(args);
     }
 
     private static void snapshotsAreIndependent() {

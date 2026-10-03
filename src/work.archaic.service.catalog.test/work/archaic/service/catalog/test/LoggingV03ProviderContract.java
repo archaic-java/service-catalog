@@ -38,6 +38,12 @@ public final class LoggingV03ProviderContract {
         cases.add(new ThreadOwnership(factory));
         cases.add(new ContextInputValidation(factory));
         cases.add(new ObjectLogging(factory));
+        for (boolean explicit : new boolean[]{false, true})
+            for (boolean nullable : new boolean[]{false, true}) cases.add(new ReturningContext(factory, explicit, nullable));
+        cases.add(new FailingCall(factory, false));
+        cases.add(new FailingCall(factory, true));
+        cases.add(new NestedCall(factory));
+        cases.add(new CallLifecycle(factory));
     }
 }
 
@@ -328,6 +334,85 @@ record ObjectLogging(Supplier<LoggingV03ProviderContract.Fixture> factory) imple
         assert f.entries().size() == 2 : "Default methods delegate output and lazy debug";
         assert new Logging() {}.loggingName().contains("ObjectLogging") : "Default name identifies implementing class";
         try { first.logImmediately("outside"); assert false : "Object logging without context fails explicitly"; }
+        catch (IllegalStateException expected) { }
+    }
+}
+
+record ReturningContext(Supplier<LoggingV03ProviderContract.Fixture> factory,
+                        boolean explicit, boolean nullable) implements TestCase {
+    public void run(TestTrail test) throws Exception {
+        var f = factory.get(); var context = f.context(false);
+        Object expected = nullable ? null : new Object();
+        var calls = new AtomicInteger(); Thread caller = Thread.currentThread();
+        Object result = context.call(() -> {
+            assert Logging.context() == context && Thread.currentThread() == caller : "Call binds on the caller thread";
+            calls.incrementAndGet();
+            context.onFailure("worker", "value evidence");
+            if (explicit) context.fail("marked before returning");
+            return expected;
+        });
+        assert result == expected && calls.get() == 1 : "Return the exact nullable value from one invocation";
+        assert f.reports().size() == (explicit ? 1 : 0) : "Publish explicit failure before returning; discard successful evidence";
+        if (explicit) assert f.reports().getFirst().evidence().getFirst().message().equals("value evidence")
+                : "Returning a value must not lose marked context evidence";
+        try { Logging.context(); assert false : "Restore binding before returning the value"; }
+        catch (IllegalStateException expectedFailure) { }
+    }
+}
+
+record FailingCall(Supplier<LoggingV03ProviderContract.Fixture> factory, boolean error) implements TestCase {
+    public void run(TestTrail test) throws Exception {
+        var f = factory.get(); var context = f.context(false);
+        Throwable original = error ? new AssertionError("call error") : new IOException("call checked");
+        try {
+            if (error) context.call(() -> { context.onFailure("worker", "before call error"); throw (AssertionError) original; });
+            else checkedCall(context, (IOException) original);
+            assert false : "Call failures must escape";
+        } catch (IOException | AssertionError caught) {
+            assert caught == original : "Preserve original checked exception or Error identity";
+        }
+        assert f.reports().size() == 1 && f.reports().getFirst().cause() == original
+                : "Failed calls must publish one report with the original cause";
+        try { Logging.context(); assert false : "Failed calls must restore bindings"; }
+        catch (IllegalStateException expected) { }
+    }
+    private static String checkedCall(Context context, IOException failure) throws IOException {
+        return context.call(() -> { context.onFailure("worker", "before checked call"); throw failure; });
+    }
+}
+
+record NestedCall(Supplier<LoggingV03ProviderContract.Fixture> factory) implements TestCase {
+    public void run(TestTrail test) throws Exception {
+        var f = factory.get(); var outer = f.context(false); var inner = f.context(true);
+        var original = new IOException("inner call");
+        int result = outer.call(() -> {
+            outer.onFailure("outer", "before inner");
+            try { inner.call(() -> { throw original; }); assert false : "Inner failure must escape"; }
+            catch (IOException caught) {
+                assert caught == original && Logging.context() == outer : "Restore the outer binding after failed inner call";
+            }
+            return 42;
+        });
+        assert result == 42 && f.reports().size() == 1 && f.reports().getFirst().cause() == original
+                : "Recovered inner call must not fail the returning parent";
+    }
+}
+
+record CallLifecycle(Supplier<LoggingV03ProviderContract.Fixture> factory) implements TestCase {
+    public void run(TestTrail test) throws Exception {
+        var f = factory.get(); var context = f.context(false);
+        try { context.call(null); assert false : "Null call work must be rejected"; }
+        catch (NullPointerException expected) { }
+        int value = context.call(() -> {
+            try { context.call(() -> 0); assert false : "Reject reentrant calls"; }
+            catch (IllegalStateException expected) { }
+            return 1;
+        });
+        assert value == 1 : "Null work must not consume the context";
+        try { context.run(() -> {}); assert false : "Call consumes the same single-use lifecycle as run"; }
+        catch (IllegalStateException expected) { }
+        var ran = f.context(false); ran.run(() -> {});
+        try { ran.call(() -> 0); assert false : "Run must prevent subsequent call reuse"; }
         catch (IllegalStateException expected) { }
     }
 }

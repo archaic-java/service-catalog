@@ -1,5 +1,6 @@
 package work.archaic.service.logging.v03;
 
+import java.io.PrintStream;
 import java.time.Clock;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -18,5 +19,11 @@ public record Configuration(boolean debug, Clock clock, Consumer<Entry> entries,
     /** Default retention and UTC timestamps, with explicitly selected output sinks. */
     public Configuration(boolean debug, Consumer<Entry> entries, Consumer<FailureReport> failures) {
         this(debug, Clock.systemUTC(), entries, failures, 256, 2048);
+    }
+
+    /** Standard text output to the chosen stream, UTC and default retention limits. */
+    public static Configuration text(boolean debug, PrintStream stream) {
+        var output = new TextOutput(stream);
+        return new Configuration(debug, output::entry, output::failure);
     }
 }

@@ -17,18 +17,26 @@ if (providers.size() != 1) throw new IllegalStateException("Exactly one logging 
 var logging = providers.getFirst().get();
 var context = logging.context();
 context.run(() -> reconciler.reconcile(resource));
+// Use a fresh context for work that returns a value:
+var result = logging.context().call(() -> reconciler.read(resource));
 ```
 
 `logging.context()` captures the provider's documented defaults. To select per-context output,
 debug, clock and retention settings, use `logging.context(configuration)`:
 
 ```java
-var configuration = new Configuration(
-    true,
-    entry -> renderEntryToStderr(entry),
-    report -> renderFailureToStderr(report));
+var configuration = Configuration.text(true, System.err);
 var context = logging.context(configuration);
 ```
+
+`Configuration.text(debug, stream)` uses the reusable catalog `TextOutput` renderer.
+It writes timestamp, source and message, escaping backslashes, CR and LF in fields.
+Reports include retained evidence, dropped count, explicit reason and original stack trace.
+Each complete report and entry synchronizes on the selected stream, even across separate
+renderer instances. The caller owns the stream; rendering never closes it and follows
+PrintStream error semantics. For custom clocks/limits, construct `TextOutput` explicitly and
+pass `output::entry` and `output::failure` to the full Configuration constructor.
+Custom rendering remains supported by supplying application-defined sinks.
 
 The three-argument constructor chooses UTC, 256 retained entries and 2048 UTF-16 units per
 field. The full constructor is `(boolean debug, Clock clock, Consumer<Entry> entries,
@@ -50,7 +58,8 @@ the object's toString(). Default methods use the currently bound logging context
 | `logOnFailure(String)` | Retain evidence for publication if this context fails. |
 | `Logging.context()` | Access the current context. |
 | `context.fail(String)` | Mark failed without throwing; keep the first reason. |
-| `context.run(Work<E>)` | Run once synchronously on the calling thread. |
+| `context.run(Work<E>)` | Run void work once synchronously on the calling thread. |
+| `context.call(Call<T, E>)` | Run value-returning work with the same lifecycle. |
 
 For example: `logOnDebug(() -> expensiveStateDescription())`.
 A non-null supplier is required even with debug disabled, but its body is never executed in
@@ -68,7 +77,10 @@ submission order even if the clock moves backwards.
 
 Creation performs no execution or output. `Context.run` binds the context on the calling
 thread; it creates no thread, executor or asynchronous task. `Work<E extends Exception>`
-preserves checked exception types. A context can be created on one thread and run on another,
+and `Call<T, E extends Exception>` preserve checked exception types. `call` returns the exact
+value, including null, after completion and output publication. It does not inspect result values
+for success or failure; use `fail` for a handled failure. `run` delegates to the same lifecycle.
+Calling either method consumes the context; reuse through either method is rejected. A context can be created on one thread and run on another,
 but after execution starts, every logging operation belongs to the executing thread.
 
 Normal completion discards evidence unless marked failed. An exception or error escaping the
@@ -79,7 +91,7 @@ subsequent evidence. If an exception also escapes, report both the first reason 
 cause. Error responses and failure-valued returns do not implicitly mark failure.
 
 Each context runs exactly once. Reentrant, concurrent or completed-context reuse throws
-IllegalStateException. Null work is rejected before the context is consumed. Context operations
+IllegalStateException. Null work for either run or call is rejected before the context is consumed. Context operations
 before run, after completion, on another thread, or through a suspended outer context fail
 explicitly. Application logging outside an active scope also fails; there is no implicit fallback.
 
@@ -118,7 +130,7 @@ Release retained evidence after completion, including successful completion and 
 ## Implement and verify a provider
 
 Implement Log to create contexts. Extend Context, implementing immediately, onFailure, fail
-and finish. The final run method supplies single-use lifecycle, scoped binding, restoration and
+and finish. The final run/call methods supply single-use lifecycle, scoped binding, restoration and
 original-throwable preservation; the final onDebug method supplies lazy evaluation. Call the
 protected requireActive guard before each provider logging operation. finish(cause) runs once
 outside the completed binding; publish if marked failed or cause is non-null, and release evidence
@@ -129,5 +141,7 @@ registers testing-v02 conformance cases. Supply an independent provider, clock a
 observed entry/report lists per fixture. Tests configure their own contexts and exercise caller-
 thread execution, single-use lifecycle, explicit/escaping failure, nested recovery, independent
 concurrent scopes, child-thread confinement, bounded immutable evidence, object attribution and
-lazy debug (disabled, exactly-once enabled, null result and failing suppliers). Culpa runs these
+lazy debug (disabled, exactly-once enabled, null result and failing suppliers), plus nullable
+return values, checked call exceptions, mixed run/call reuse and nested returning work.
+The standalone catalog checks also verify standard text output and serialization across renderers. Culpa runs these
 through Minau alongside discovery, timestamp, custom-configuration and sink-failure checks.
