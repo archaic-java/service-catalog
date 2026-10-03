@@ -5,8 +5,8 @@ The JDK 25 provider [Culpa](https://github.com/archaic-java/culpa) implements th
 
 ## Application API
 
-Implement `Logging` to obtain `immediately(String)`, `onDebug(String)` and
-`onFailure(String)` without declaring a logger field. The default `loggingName()` is
+Implement `Logging` to obtain `logImmediately(String)`, `logOnDebug(String)` and
+`logOnFailure(String)` without declaring a logger field. The default `loggingName()` is
 `getClass().getName()`; override it to identify an instance. Never infer identity from
 `toString()`. Each accepted entry captures its timestamp, source and message at submission.
 
@@ -28,14 +28,14 @@ Logging.trail(() -> reconciler.reconcile(resource));
 
 | Call | Meaning |
 | --- | --- |
-| `immediately(message)` | Publish now, with or without a trail. |
-| `onDebug(message)` | Publish now only if debug is enabled; otherwise discard. |
-| `onFailure(message)` | Retain evidence in the active trail. |
+| `logImmediately(message)` | Publish now, with or without a trail. |
+| `logOnDebug(message)` | Publish now only if debug is enabled; otherwise discard. |
+| `logOnFailure(message)` | Retain evidence in the active trail. |
 | `Logging.trail(work)` | Execute synchronously on the calling thread. |
 | `Logging.failure(message)` | Mark the active trail failed, without throwing. |
 | `Logging.debug(enabled)` | Change the shared provider's debug mode; initially false. |
 
-Debug controls only `onDebug`; it does not publish successful trails or duplicate evidence.
+Debug controls only `logOnDebug`; it does not publish successful trails or duplicate evidence.
 The setting is visible across threads. String arguments are eager: their construction happens
 even if debug is disabled. All source/message/work arguments must be non-null, including
 suppressed debug submissions.
@@ -57,7 +57,7 @@ explicit reason and the original cause. A failure-valued return or error respons
 implicitly mark failure. Place the boundary around work whose outcome matters, and mark
 handled failures explicitly inside it.
 
-`onFailure` and `failure` outside an active trail throw `IllegalStateException`.
+`logOnFailure` and `failure` outside an active trail throw `IllegalStateException`.
 Independent executions have independent buffers, including concurrent calls sharing objects
 and the same provider. Context belongs to an execution, not an object or reusable worker thread.
 No supported cross-thread trail propagation exists in v03. Child tasks establish independent

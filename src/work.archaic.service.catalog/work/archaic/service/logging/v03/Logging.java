@@ -5,9 +5,9 @@ import java.util.Objects;
 /** Object logging without logger fields. Install one shared provider at startup. */
 public interface Logging {
     default String loggingName() { return getClass().getName(); }
-    default void immediately(String message) { provider().immediately(loggingName(), message); }
-    default void onDebug(String message) { provider().onDebug(loggingName(), message); }
-    default void onFailure(String message) { provider().onFailure(loggingName(), message); }
+    default void logImmediately(String message) { provider().immediately(loggingName(), message); }
+    default void logOnDebug(String message) { provider().onDebug(loggingName(), message); }
+    default void logOnFailure(String message) { provider().onFailure(loggingName(), message); }
 
     static <E extends Exception> void trail(Work<E> work) throws E { provider().trail(work); }
     static void failure(String message) { provider().failure(Logging.class.getName(), message); }
