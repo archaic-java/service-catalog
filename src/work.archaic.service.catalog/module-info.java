@@ -1,6 +1,8 @@
 module work.archaic.service.catalog {
+    uses work.archaic.service.logging.v03.Log;
     exports work.archaic.service.logging.v01;
     exports work.archaic.service.logging.v02;
+    exports work.archaic.service.logging.v03;
     exports work.archaic.service.compiler.v01;
     exports work.archaic.service.cli.v01;
     exports work.archaic.service.test.v01;

@@ -19,6 +19,13 @@ swap a library as the app using it, is only depending on the service defined in 
 
 [SQLite v01](docs/sqlite-v01.md) defines scoped local database access, a single writer, bounded readers, and prepared statements. The Linux FFM implementation lives in [ffm-sqlite](https://github.com/archaic-java/ffm-sqlite).
 
+## Object logging and caller-thread trails
+
+[Logging v03](docs/logging-v03.md) provides the `Logging` interface, immediate/debug output,
+and failure evidence collected around synchronous execution. Trails never require a separate
+thread. [Culpa](https://github.com/archaic-java/culpa) is its JDK-only provider and runs the
+catalog's reusable provider-conformance cases with Minau.
+
 ## Goal-scoped diagnostics
 
 [Logging v02](docs/logging-v02.md) defines application goals, per-attempt trails and a log for
