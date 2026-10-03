@@ -1,35 +1,18 @@
 package work.archaic.service.logging.v03;
 
-import java.util.Objects;
+import java.util.function.Supplier;
 
-/** Object logging without logger fields. Install one shared provider at startup. */
+/** Object logging without logger fields, using the current execution's context. */
 public interface Logging {
     default String loggingName() { return getClass().getName(); }
-    default void logImmediately(String message) { provider().immediately(loggingName(), message); }
-    default void logOnDebug(String message) { provider().onDebug(loggingName(), message); }
-    default void logOnFailure(String message) { provider().onFailure(loggingName(), message); }
+    default void logImmediately(String message) { context().immediately(loggingName(), message); }
+    default void logOnDebug(Supplier<String> message) { context().onDebug(loggingName(), message); }
+    default void logOnFailure(String message) { context().onFailure(loggingName(), message); }
 
-    static <E extends Exception> void trail(Work<E> work) throws E { provider().trail(work); }
-    static void failure(String message) { provider().failure(Logging.class.getName(), message); }
-    static void debug(boolean enabled) { provider().debug(enabled); }
-    static boolean debug() { return provider().debug(); }
-
-    /** Bind once at composition time, normally after explicit ServiceLoader selection. */
-    static void install(Log provider) { Binding.install(provider); }
-
-    private static Log provider() {
-        Log provider = Binding.provider;
-        if (provider == null) throw new IllegalStateException("Install a logging provider first");
-        return provider;
-    }
-}
-
-final class Binding {
-    private Binding() {}
-    static volatile Log provider;
-    static synchronized void install(Log selected) {
-        Objects.requireNonNull(selected, "provider");
-        if (provider != null) throw new IllegalStateException("Logging provider already installed");
-        provider = selected;
+    /** Access the current context, for example to mark a handled failure with fail(reason). */
+    static Context context() {
+        Context context = ContextBinding.currentOrNull();
+        if (context == null) throw new IllegalStateException("No active logging context");
+        return context;
     }
 }
