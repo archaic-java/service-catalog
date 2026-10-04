@@ -22,7 +22,7 @@ record Addition(int left, int right, int expected) implements TestCase {
     public void run(TestTrail trail) {
         int actual = Math.addExact(left, right);
         trail.note("Actual sum: " + actual);
-        assert actual == expected : "Expected sum: " + expected;
+        assert actual == expected : "Sum must equal " + expected + "; got " + actual;
     }
 }
 ```
@@ -34,16 +34,14 @@ not a requirement enforced by these interfaces.
 
 ## Registration and discovery
 
-Runners discover public concrete TestSuite implementations with public no-argument
-constructors. Minau continues scanning the selected modules. Case types need no discovery,
-annotations or reflective access. Export the suite package, optionally only to the runner:
+Discoverable suites are public concrete TestSuite implementations with public
+no-argument constructors. Case implementations are invoked through TestCase and may
+be package-private; they require no reflective access to their implementation.
 
-```java
-module example.test {
-    requires work.archaic.service.catalog;
-    exports example.test to work.archaic.minau;
-}
-```
+For Minau's module selection, JPMS exports/opens, discovery validation and CLI, read
+[Minau's discovery reference](https://github.com/archaic-java/minau/blob/main/skills/maintain-minau/references/discovery.md).
+Those mechanics belong to the runner. This contract defines the suite/case boundary
+and lifecycle independently of a particular runner's scan strategy.
 
 The runner constructs each suite once per run and supplies a fresh mutable collection.
 Registration is synchronous: do not retain the collection, modify it from other threads,

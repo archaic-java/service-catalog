@@ -5,6 +5,14 @@ order. Each execution is an independent attempt to fulfill it, including communi
 outcome when that belongs to the intent. Construction starts no work. The same goal can be
 used repeatedly and concurrently.
 
+## Contents
+
+- [Vocabulary](#vocabulary)
+- [Execution and failure](#execution-and-failure)
+- [Executors and service loading](#executors-and-service-loading)
+- [Compatibility and checks](#compatibility-and-checks)
+
+
 ## Vocabulary
 
 | Type | Responsibility |

@@ -4,6 +4,16 @@
 evidence during an operation and retaining it only when the operation fails. It has no
 SLF4J dependency, severity levels, MDC or fluent logging builder.
 
+## Contents
+
+- [Contract boundary](#contract-boundary)
+- [Lifecycle](#lifecycle)
+- [Selection and use](#selection-and-use)
+- [JDK HTTP server](#jdk-http-server)
+- [Future capabilities](#future-capabilities)
+- [Validation and provider follow-up](#validation-and-provider-follow-up)
+
+
 ## Contract boundary
 
 | Type | Responsibility |
