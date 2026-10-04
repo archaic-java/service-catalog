@@ -1,49 +1,45 @@
-# Archaic Dependency Injection
+# Archaic Service Catalog
 
-To "work archaic" means to avoid third party code. But it does not mean to never use libraries.
+`work.archaic.service.catalog` defines the shared capabilities of the `work.archaic`
+namespace: versioned APIs, their data types and behavioral expectations. Consumers
+and providers depend on these contracts to keep implementation choices independent.
+A consumer may depend on catalogs from more than one namespace.
 
-This repo holds a "service catalog". Several services are described in it. Service providers can
-decide to implement their interface. Javas service loader will then be able to identify and
-instantiate the service provided and inject it into modules requesting the service.
+The catalog also contains reusable provider-conformance cases where available.
+They check particular promises; passing them provides evidence of compliance, not
+proof of every possible behavior. Runtime providers live in their own projects.
+Provider selection is explicit, through ServiceLoader or construction as specified
+by the capability. Published contract versions remain compatible.
 
-This provides us with a decoupling between library and its users. This means it starts to be easy to
-swap a library as the app using it, is only depending on the service defined in the service catalog.
+## Find a contract or make a change
 
-## Characteristics
-- An application can depend on service of more than one service catalog
-- Tests are part of the service definition in the catalog
-- The tests in the catalog serve as proof for conformance of the providers implementation
-- Service definitions in the catalog are versioned and each version is treated immutable
+Start with the [catalog skill](skills/maintain-service-catalog/SKILL.md). Human readers
+and coding agents use the same task map and contract index; no installation is needed
+to follow these links. The skill covers consuming contracts, implementing providers,
+evolving contracts and maintaining their compliance checks.
 
-## Local SQLite
+For the division of responsibility between Archaic Java, a project's maintenance
+skill and this catalog, read [documentation ownership](skills/maintain-service-catalog/references/ownership.md).
+Exact API declarations and Javadoc remain beside the source. Existing `docs/` guides
+retain their URLs and explain capability behavior; the skill routes to them.
 
-[SQLite v01](docs/sqlite-v01.md) defines scoped local database access, a single writer, bounded readers, and prepared statements. The Linux FFM implementation lives in [ffm-sqlite](https://github.com/archaic-java/ffm-sqlite).
+The [contract index](skills/maintain-service-catalog/SKILL.md#find-the-capability)
+includes every exported package. Frequently used guides include
+[logging v03](docs/logging-v03.md), [SQLite v01](docs/sqlite-v01.md),
+[testing v02](docs/test-v02.md) and [compiler v01](docs/compiler-v01.md).
 
-## Configured logging contexts
+## Build and verify
 
-[Logging v03](docs/logging-v03.md) provides the `Logging` interface, lazy debug messages, and configured,
-single-use contexts that collect evidence around synchronous execution. Contexts run on the
-calling thread without global installation. [Culpa](https://github.com/archaic-java/culpa) is its JDK-only provider and runs the
-catalog's reusable provider-conformance cases with Minau.
-
-## Goal-scoped diagnostics
-
-[Logging v02](docs/logging-v02.md) defines application goals, per-attempt trails and a log for
-immediate information and completed failure reports. It uses Diagnostics, run-only Goal,
-Log.write, Goal.newExecutor and FailureReport.goalName.
-[Logging v01](docs/logging-v01.md) remains available unchanged for existing consumers. Runtime implementations belong in a
-separate provider library.
-
-Compile the catalog and its contract checks with JDK 25, then run with assertions enabled:
+Use a full JDK 25, including `javac`, and run from the repository root:
 
 ```sh
 javac @cmd/compile
 java @cmd/test
 ```
 
-
-## Explicit test cases
-
-[Testing v02](docs/test-v02.md) defines suites that register case instances through a mutable
-collection, record-based data-driven cases, and per-execution failure trails. The existing
-annotation-based testing v01 contracts remain unchanged.
+The command files compile the catalog and its test module, then run standalone
+logging data/default-method and text-output checks. They require no provider or
+external dependency. They do not execute the reusable provider-conformance cases.
+For those entry points and provider-side verification, read
+[conformance](skills/maintain-service-catalog/references/conformance.md).
+Keep generated classes in ignored `out/`.

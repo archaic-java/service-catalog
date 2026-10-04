@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintain Archaic Service Catalog"
+  short_description: "Find contracts, evolve APIs, and verify provider expectations"
+  default_prompt: "Use $maintain-service-catalog to locate and review the contract and conformance checks for a service change."

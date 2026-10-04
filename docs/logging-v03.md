@@ -5,6 +5,15 @@ Package: `work.archaic.service.logging.v03`, JDK 25, no preview features.
 Logging v01 and v02 remain unchanged. There is no global installation, global debug state,
 or separate trail boundary in v03.
 
+## Contents
+
+- [Select a provider and create a context](#select-a-provider-and-create-a-context)
+- [Log from application objects](#log-from-application-objects)
+- [Scope and outcome](#scope-and-outcome)
+- [Evidence and retention](#evidence-and-retention)
+- [Implement and verify a provider](#implement-and-verify-a-provider)
+
+
 ## Select a provider and create a context
 
 `Log` is a stateless factory for independent `Context` instances. Consumers require
