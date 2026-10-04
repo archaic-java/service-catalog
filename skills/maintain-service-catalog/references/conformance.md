@@ -18,9 +18,9 @@ The catalog test module exports reusable case registration APIs and depends on t
 catalog, not provider classes or Minau. A provider-side public testing-v02 suite can
 register those cases and run them with Minau. Use the test contract for case semantics
 and Minau's own documentation for discovery, selection and report details.
-The [logging guide](../../../docs/logging-v03.md#implement-and-verify-a-provider)
+The [logging guide](logging-v03.md#implement-and-verify-a-provider)
 defines its fixture interface requirements; the
-[SQLite ledger](../../../docs/sqlite-v01-guarantees.md) separates implemented scenarios,
+[SQLite ledger](sqlite-v01-guarantees.md) separates implemented scenarios,
 planned work and unresolved policy. Read current registration source to know which
 cases actually execute; older issue/PR links preserve context, not current coverage.
 

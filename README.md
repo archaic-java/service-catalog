@@ -20,13 +20,14 @@ evolving contracts and maintaining their compliance checks.
 
 For the division of responsibility between Archaic Java, a project's maintenance
 skill and this catalog, read [documentation ownership](skills/maintain-service-catalog/references/ownership.md).
-Exact API declarations and Javadoc remain beside the source. Existing `docs/` guides
-retain their URLs and explain capability behavior; the skill routes to them.
+Exact API declarations and Javadoc remain beside the source. Contract guides and
+maintenance guidance live together in the skill's `references/` directory, loaded
+as needed through its task map and capability index.
 
 The [contract index](skills/maintain-service-catalog/SKILL.md#find-the-capability)
 includes every exported package. Frequently used guides include
-[logging v03](docs/logging-v03.md), [SQLite v01](docs/sqlite-v01.md),
-[testing v02](docs/test-v02.md) and [compiler v01](docs/compiler-v01.md).
+[logging v03](skills/maintain-service-catalog/references/logging-v03.md), [SQLite v01](skills/maintain-service-catalog/references/sqlite-v01.md),
+[testing v02](skills/maintain-service-catalog/references/test-v02.md) and [compiler v01](skills/maintain-service-catalog/references/compiler-v01.md).
 
 ## Build and verify
 

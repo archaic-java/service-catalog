@@ -10,7 +10,7 @@ point and workflow; it does not make all linked facts belong to that skill's pro
 |---|---|---|
 | Shared engineering conventions: JDK-first design, JPMS, argument files, assertion style, documentation structure | Archaic Java skill | A link or short orientation, plus explicit local variations. |
 | Public API signatures, data shapes and method-level invariants | Versioned catalog declarations and their Javadoc | Links and task-specific examples using that API. |
-| Portable lifecycle, concurrency, failure and composition expectations connecting contract types | Catalog capability guide in `docs/` | A summary sufficient to recognize the constraint, with a link to its definition. |
+| Portable lifecycle, concurrency, failure and composition expectations connecting contract types | Catalog capability guide in the skill’s `references/` | A summary sufficient to recognize the constraint, with a link to its definition. |
 | Portable provider-compliance assertions | Catalog conformance cases, tied to documented promises | Provider suite wiring and actual execution evidence. Tests cannot invent guarantees. |
 | Provider algorithms, native dependencies, defaults allowed by the contract, performance and platform limits | Provider project's source and maintenance skill | Catalog links to an implementation where useful; no assumption all providers behave identically. |
 | Consumer choice of provider/version, configuration, application policy and integration | Consumer project's source and maintenance skill | Catalog explanation of what the API permits or requires, without application-specific settings. |
@@ -24,7 +24,7 @@ provider's/consumer's local skill.
 ## Follow one fact across projects
 
 **Testing.** Archaic Java recommends inline assertions and case records. The catalog
-[testing v02 guide](../../../docs/test-v02.md) and API specify registration ownership,
+[testing v02 guide](test-v02.md) and API specify registration ownership,
 independent cases, success/failure and trail lifetime. Minau's
 [maintenance skill](https://github.com/archaic-java/minau/blob/main/skills/maintain-minau/SKILL.md)
 owns its module scanning, CLI ordinals, virtual-thread scheduling and numeric trail
@@ -32,16 +32,16 @@ retention limits. A consumer project's skill owns its fixtures and test launch c
 A catalog example can illustrate the API without becoming the definitive runner guide.
 
 **Logging.** Archaic Java recommends the logging approach for new applications. The
-catalog [logging v03 guide](../../../docs/logging-v03.md) owns context lifecycle and
+catalog [logging v03 guide](logging-v03.md) owns context lifecycle and
 configuration semantics. Culpa owns its provider mechanics and default configuration;
 the consuming application owns its selected sinks, debug settings and scope boundaries.
 The catalog's standard renderer and Configuration defaults are catalog-defined API
 behavior, even though they include code: ownership follows the promise, not a blanket
 rule that all implementations must live outside the catalog.
 
-**SQLite.** The catalog [SQLite guide](../../../docs/sqlite-v01.md) owns scoped sessions,
+**SQLite.** The catalog [SQLite guide](sqlite-v01.md) owns scoped sessions,
 transaction and failure expectations. ffm-sqlite owns Linux FFM/native mechanics and
-provider-specific fault injection. The [ledger](../../../docs/sqlite-v01-guarantees.md)
+provider-specific fault injection. The [ledger](sqlite-v01-guarantees.md)
 explicitly separates portable guarantees, observed provider behavior and undecided
 policy. An application owns its schema and chosen reader count.
 

@@ -46,13 +46,13 @@ identifies exported packages.
 
 | Capability/version | Guide | API source |
 |---|---|---|
-| logging v03: configured contexts | [Current logging](../../docs/logging-v03.md) | [logging/v03](../../src/work.archaic.service.catalog/work/archaic/service/logging/v03) |
-| logging v02: goals and Diagnostics | [Logging v02](../../docs/logging-v02.md) | [logging/v02](../../src/work.archaic.service.catalog/work/archaic/service/logging/v02) |
-| logging v01: goals and GoalProvider | [Logging v01](../../docs/logging-v01.md) | [logging/v01](../../src/work.archaic.service.catalog/work/archaic/service/logging/v01) |
-| test v02: registered cases and evidence | [Testing v02](../../docs/test-v02.md) | [test/v02](../../src/work.archaic.service.catalog/work/archaic/service/test/v02) |
+| logging v03: configured contexts | [Current logging](references/logging-v03.md) | [logging/v03](../../src/work.archaic.service.catalog/work/archaic/service/logging/v03) |
+| logging v02: goals and Diagnostics | [Logging v02](references/logging-v02.md) | [logging/v02](../../src/work.archaic.service.catalog/work/archaic/service/logging/v02) |
+| logging v01: goals and GoalProvider | [Logging v01](references/logging-v01.md) | [logging/v01](../../src/work.archaic.service.catalog/work/archaic/service/logging/v01) |
+| test v02: registered cases and evidence | [Testing v02](references/test-v02.md) | [test/v02](../../src/work.archaic.service.catalog/work/archaic/service/test/v02) |
 | test v01: annotated suites | Package Javadoc at the API link | [test/v01](../../src/work.archaic.service.catalog/work/archaic/service/test/v01) |
-| sqlite v01: scoped local database access | [SQLite](../../docs/sqlite-v01.md), [guarantee/test ledger](../../docs/sqlite-v01-guarantees.md) | [sqlite/v01](../../src/work.archaic.service.catalog/work/archaic/service/sqlite/v01) |
-| compiler v01: in-memory syntax analysis | [Compiler](../../docs/compiler-v01.md) | [compiler/v01](../../src/work.archaic.service.catalog/work/archaic/service/compiler/v01) |
+| sqlite v01: scoped local database access | [SQLite](references/sqlite-v01.md), [guarantee/test ledger](references/sqlite-v01-guarantees.md) | [sqlite/v01](../../src/work.archaic.service.catalog/work/archaic/service/sqlite/v01) |
+| compiler v01: in-memory syntax analysis | [Compiler](references/compiler-v01.md) | [compiler/v01](../../src/work.archaic.service.catalog/work/archaic/service/compiler/v01) |
 | cli v01: command invocation | API source | [cli/v01](../../src/work.archaic.service.catalog/work/archaic/service/cli/v01) |
 | build v01: repository metadata | API Javadoc | [build/v01](../../src/work.archaic.service.catalog/work/archaic/service/build/v01) |
 | html.sitegenerator v01: site generation | API Javadoc | [html/sitegenerator/v01](../../src/work.archaic.service.catalog/work/archaic/service/html/sitegenerator/v01) |

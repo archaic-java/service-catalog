@@ -13,7 +13,7 @@ Use the canonical [README commands](../../../README.md#build-and-verify).
 | [Test source](../../../src/work.archaic.service.catalog.test/work/archaic/service/catalog/test) | Actual check entry points and portable cases. |
 | [cmd/compile](../../../cmd/compile) | Compiles both modules with release 25 into `out/`. |
 | [cmd/test](../../../cmd/test) | Runs the standalone catalog launcher with assertions enabled. |
-| [Capability guides](../../../docs) | Connected behavior, examples and the SQLite guarantee/test ledger. |
+| [Skill references](.) | Capability guides, examples, the SQLite guarantee/test ledger and maintenance workflows. |
 
 The current build needs a full JDK 25 and no sibling checkout, external dependency or
 provider. The test module requires `jdk.httpserver` for compilation of HTTP contract
@@ -45,8 +45,9 @@ catalog defaults or compatibility; do not migrate test infrastructure incidental
 
 Keep README purpose and commands short. Keep skill metadata, foundation and task/contract
 routing compact; link to the owning guide or declaration rather than restating its full
-specification. Keep existing `docs/` URLs stable when reorganizing navigation. Add a table
-of contents to long guides so humans and agents can inspect their scope quickly.
+specification. Keep contract guides and maintenance guidance inside the skill's
+`references/` directory, with direct task or capability links from `SKILL.md`. Add a
+table of contents to long guides so humans and agents can inspect their scope quickly.
 
 For documentation-only changes, validate skill metadata, local Markdown paths/anchors,
 and index coverage against module exports. Check behavioral claims and check coverage
